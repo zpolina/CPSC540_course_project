@@ -3,7 +3,7 @@
 
 # ## Reading all masks from the folders and producing one single mask file
 
-# In[6]:
+# In[1]:
 
 
 import cv2
@@ -63,7 +63,7 @@ combining_masks()
 
 # ### Splitting dataset ids on training and validation
 
-# In[7]:
+# In[2]:
 
 
 from sklearn.model_selection import train_test_split
@@ -74,7 +74,7 @@ ids_train, ids_test = train_test_split(ids, test_size=0.20, random_state=42)
 
 # ## All random data augmentations in one function
 
-# In[9]:
+# In[3]:
 
 
 def data_aug(image,label,angel=5,resize_rate=0.3, output_size=256):
@@ -144,7 +144,7 @@ def data_aug(image,label,angel=5,resize_rate=0.3, output_size=256):
 
 # ## Creating Dataset to use it in DataLoader
 
-# In[10]:
+# In[4]:
 
 
 from torch.utils.data.dataset import Dataset
@@ -178,7 +178,7 @@ class ImageMaskDataset(Dataset):
 
 # #### Function for image visualisation
 
-# In[11]:
+# In[5]:
 
 
 from torch.utils.data import DataLoader
@@ -192,7 +192,7 @@ def image_show(name, image, resize=1):
 
 # #### Simple data augmentation for testing
 
-# In[12]:
+# In[6]:
 
 
 WIDTH = 256
@@ -212,15 +212,17 @@ dataset = ImageMaskDataset(
 sampler = RandomSampler(dataset)
 
 
-# In[13]:
+# In[7]:
 
 
 dataset[1][0]
 
 
-# ## `UNet` class is based on https://arxiv.org/abs/1505.04597
+# ## `UNet` class is based on https://arxiv.org/pdf/1801.05746.pdf
 
-# In[14]:
+# ![UNet_VGG11.png](attachment:UNet_VGG11.png)
+
+# In[8]:
 
 
 import torch.nn as nn
@@ -302,7 +304,7 @@ class UNet(nn.Module):
     
 
 
-# In[16]:
+# In[10]:
 
 
 num_classes = 1
@@ -330,7 +332,7 @@ print(type(net))
 print(net)
 
 
-# In[17]:
+# In[11]:
 
 
 output
@@ -338,7 +340,7 @@ output
 
 # ### Soft Dice Loss implementation:
 
-# In[18]:
+# In[12]:
 
 
 class DiceLoss(nn.Module):
@@ -357,7 +359,7 @@ class DiceLoss(nn.Module):
 
 # ## Validation function
 
-# In[19]:
+# In[13]:
 
 
 net = UNet(in_shape=(C,HIGHT,WIDTH), num_classes=1).cuda()
@@ -371,12 +373,12 @@ validation_dataset = ImageMaskDataset(
 validation_loader  = DataLoader(
                         validation_dataset,
                         sampler = RandomSampler(validation_dataset),
-                        batch_size  = 16,
+                        batch_size  = 1,
                         drop_last   = True,
                         num_workers = 8)
 
 
-# In[20]:
+# In[14]:
 
 
 def validation_loss(net, loader, loss_type):
@@ -420,7 +422,7 @@ def validation_loss(net, loader, loss_type):
     return totall_val_loss/val_batch_num
 
 
-# In[32]:
+# In[15]:
 
 
 def jaccard(x,y):
@@ -428,7 +430,7 @@ def jaccard(x,y):
     y = np.asarray(y, np.bool) 
     return 1- np.double(np.bitwise_and(x, y).sum()) / np.double(np.bitwise_or(x, y).sum())
 
-def val_jac_loss(net, loader, images):
+def val_jac_loss(net, loader, im_print):
     validation_loader = loader
     net.eval()
     totall_val_loss = 0
@@ -452,7 +454,7 @@ def val_jac_loss(net, loader, images):
         y = np.copy(masks)
         x = np.squeeze(x, axis=1)
         totall_val_loss += jaccard(x,y)
-        if images:
+        if im_print:
             for i in range(len(images)):
                 image = images[i].transpose((1,2,0))*255
                 mask  = (masks[i]*255).astype(np.uint8)
@@ -476,7 +478,7 @@ def val_jac_loss(net, loader, images):
 
 # ### Training prodecure 
 
-# In[30]:
+# In[18]:
 
 
 import torch.optim as optim
@@ -521,7 +523,7 @@ def train(loss_type, augmentation, jaccard):
     validation_loader  = DataLoader(
                         validation_dataset,
                         sampler = RandomSampler(validation_dataset),
-                        batch_size  = batch_size,
+                        batch_size  = 1,
                         drop_last   = True,
                         num_workers = 8)
     
@@ -760,10 +762,30 @@ val_jac_loss(net, validation_loader, True)
 
 # ### Training with printing Jaccard error
 
-# In[ ]:
+# In[19]:
 
 
 import warnings
 warnings.filterwarnings('ignore')
 train_BCE, val_BCE = train("BCE", data_aug, True)
+
+
+# In[21]:
+
+
+print(train_BCE)
+
+
+# In[22]:
+
+
+print(val_BCE)
+
+
+# In[19]:
+
+
+import warnings
+warnings.filterwarnings('ignore')
+train_DICE, val_DICE = train("DICE", data_aug, True)
 
