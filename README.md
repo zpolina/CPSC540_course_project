@@ -1,1 +1,7 @@
 # CPSC540_course_project
+## Comparison of Cross-Entropy and Dice Loss for Cell Nuclei Detection via Deep Convolutional Neural Networks
+In recent years, Deep Convolutional Neural Networks (CNN) have driven significant advancements in the automated analysis of medical images in fields such as image segmentation. One of the reasons for this is the robustness of CNNs to the intrinsic variability in medical pictures such as noise, different recording equipment, and complex background through heterogeneous tissue. At the center of the neural network learning procedure, one has to choose a loss function that pays particular attention to the nonlinear cell boundaries without impeding the general classification quality. The commonly used Jaccard-error metric is not differentiable, and therefore one can draw from smooth alternatives such as cross-entropy and the dice-loss. Here, we investigate the effect of two loss functions for the training of the U-Net on the dataset of the 2018 Data Science Bowl Kaggle Competition. We find that the cross-entropy loss outperforms the dice loss.
+
+To see the results plese open Jupyter Notebook where you can see all the output which we used for our project report. If you want to run code yourself you need to download the data from Kaggle Data Science Bowl: https://www.kaggle.com/c/data-science-bowl-2018/data. Please download stage1_train.zip file and unpack to "input" directory. 
+
+All deep learning stuff is done using PyTorch.
